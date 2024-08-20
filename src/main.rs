@@ -1,43 +1,25 @@
 use chrono::DateTime;
 use chrono::Utc;
-use dotenv::dotenv;
+use config::Config;
 use get_backup::{AllBackups, BackupService};
-use std::env;
 use std::fs;
 use tokio::{self, io::AsyncWriteExt};
-use tracing::{info, Level};
-use tracing_subscriber::FmtSubscriber;
+use tracing::info;
 
 pub mod get_backup;
+pub mod config;
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize tracing subscriber for logging
-    FmtSubscriber::builder()
-        .compact()
-        .without_time()
-        .with_max_level(Level::INFO)
-        .init();
+    Config::setup_logging();
 
-    dotenv().ok();
-    
-    let url = env::var("API_URL").expect("API_URL must be set");
-    let api_key = env::var("API_KEY").expect("API_KEY must be set");
-    let max_server_backups:usize = env::var("MAX_SERVER_BACKUPS")
-        .expect("MAX_SERVER_BACKUPS must be set")
-        .parse()
-        .expect("MAX_SERVER_BACKUPS must be a valid usize");
-    let max_local_backups: usize = env::var("MAX_LOCAL_BACKUPS")
-        .expect("MAX_LOCAL_BACKUPS")
-        .parse()
-        .expect("MAX_LOCAL_BACKUPS must be a valid usize");
-    let local_backups_location = env::var("LOCAL_BACKUPS_LOCATION").expect("LOCAL_BACKUPS_LOCATION must be set");
+    let set_config = Config::new();
     
     info!("Loaded environment variables");
     info!("Starting backup download...");
 
-    let backup_service = BackupService::new(url, api_key);
+    let backup_service = BackupService::new(set_config.api_url, set_config.api_key);
 
     backup_service.create_backup(Some("en-US".to_string())).await?;
     
@@ -50,12 +32,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let backup_token = backup_service.get_backup(&backup_name.clone(), Some("en-US".to_string())).await?;
     let backup_data = backup_service.download_backup(backup_token).await?;
 
-    save_backup(backup_name, &local_backups_location, backup_data).await.expect("Failed to save backup");
+    save_backup(backup_name, &set_config.local_backups_location, backup_data).await.expect("Failed to save backup");
 
     info!("Backup downloaded and saved successfully");
 
-    cleanup_old_backups(&all_backups, &backup_service, max_server_backups).await.expect("Failed to cleanup old backups");
-    cleanup_old_local_backups(&local_backups_location, max_local_backups).await?;
+    cleanup_old_backups(&all_backups, &backup_service, set_config.max_server_backups).await.expect("Failed to cleanup old backups");
+    cleanup_old_local_backups(&set_config.local_backups_location, set_config.max_local_backups).await?;
 
     Ok(())
 }
