@@ -12,7 +12,6 @@ pub mod config;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Config::setup_logging().expect("Failed to setup logging");
     let set_config = Config::new();
     
     info!("Loaded environment variables");
