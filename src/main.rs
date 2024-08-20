@@ -9,6 +9,7 @@ use tracing_subscriber::FmtSubscriber;
 
 pub mod get_backup;
 
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing subscriber for logging
@@ -26,6 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("MAX_SERVER_BACKUPS must be set")
         .parse::<usize>()
         .expect("MAX_SERVER_BACKUPS must be a valid usize");
+    let local_backups_location = env::var("LOCAL_BACKUPS_LOCATION").expect("LOCAL_BACKUPS_LOCATION must be set");
     
     info!("Loaded environment variables");
     info!("Starting backup download...");
@@ -43,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let backup_token = backup_service.get_backup(&backup_name.clone(), Some("en-US".to_string())).await?;
     let backup_data = backup_service.download_backup(backup_token).await?;
 
-    save_backup(backup_name, backup_data).await.expect("Failed to save backup");
+    save_backup(backup_name, local_backups_location, backup_data).await.expect("Failed to save backup");
 
     info!("Backup downloaded and saved successfully");
 
@@ -52,8 +54,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn save_backup(backup_name: &str, backup_data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-    let mut file = tokio::fs::File::create(backup_name).await?;
+async fn save_backup(backup_name: &str, local_backups_location: String, backup_data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = tokio::fs::File::create(format!("{}/{}", local_backups_location, backup_name)).await?;
     file.write_all(&backup_data).await?;
     Ok(())
 }
