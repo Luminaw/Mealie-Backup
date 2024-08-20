@@ -31,6 +31,7 @@ This project provides a backup service for the Mealie application. It allows you
     MAX_SERVER_BACKUPS=5
     MAX_LOCAL_BACKUPS=14
     LOCAL_BACKUPS_LOCATION=/path/to/local/backups
+    LOG_LOCATION=backups=/path/to/local/logs
     ```
 
 3. **Install dependencies:**
