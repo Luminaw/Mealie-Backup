@@ -8,6 +8,7 @@ This project provides a backup service for the Mealie application. It allows you
 - Download existing backups
 - Delete locally saved backups if the number of backups exceeds a specified limit
 - Delete server backups if the number of backups exceeds a specified limit
+- Logging of backups
 
 ## Prerequisites
 
