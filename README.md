@@ -28,6 +28,7 @@ This project provides a backup service for the Mealie application. It allows you
     API_URL=http://your-mealie-api-url
     API_KEY=your-api-key
     MAX_SERVER_BACKUPS=5
+    MAX_LOCAL_BACKUPS=14
     LOCAL_BACKUPS_LOCATION=/path/to/local/backups
     ```
 
