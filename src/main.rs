@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     FmtSubscriber::builder()
         .compact()
         .without_time()
-        .with_max_level(Level::TRACE)
+        .with_max_level(Level::INFO)
         .init();
 
     dotenv().ok();
