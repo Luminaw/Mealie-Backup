@@ -1,9 +1,9 @@
 use dotenv::dotenv;
 use std::env;
 use tracing::Level;
-use tracing_subscriber::FmtSubscriber;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::fmt::writer::MakeWriterExt;
+use tracing_subscriber::FmtSubscriber;
 
 pub struct Config {
     pub api_url: String,
@@ -28,7 +28,8 @@ impl Config {
                 .expect("MAX_LOCAL_BACKUPS must be set")
                 .parse()
                 .expect("MAX_LOCAL_BACKUPS must be a valid usize"),
-            local_backups_location: env::var("LOCAL_BACKUPS_LOCATION").unwrap_or_else(|_| "backups".to_string()),
+            local_backups_location: env::var("LOCAL_BACKUPS_LOCATION")
+                .unwrap_or_else(|_| "backups".to_string()),
             log_location: env::var("LOG_LOCATION").unwrap_or_else(|_| "backups/logs".to_string()),
         };
 
@@ -37,7 +38,8 @@ impl Config {
     }
 
     fn setup_logging(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let file_appender = RollingFileAppender::new(Rotation::DAILY, &self.log_location, "mealie_backup.log");
+        let file_appender =
+            RollingFileAppender::new(Rotation::DAILY, &self.log_location, "mealie_backup.log");
 
         // Create a subscriber that logs to both the console and the file
         let subscriber = FmtSubscriber::builder()
@@ -45,9 +47,9 @@ impl Config {
             .with_writer(file_appender.and(std::io::stdout))
             .finish();
 
-        tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("setting default subscriber failed");
 
         Ok(())
     }
 }
-                
